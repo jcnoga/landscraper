@@ -1,563 +1,618 @@
-﻿<!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LeadScraper Pro — Radar de prospecção</title>
-<meta name="description" content="Prospecção inteligente de leads para o ZenSalon e parceiros.">
+<title>LeadScraper Pro — Encontre clientes em potencial no Google Maps, automaticamente</title>
+<meta name="description" content="Digite o nicho e a cidade. O sistema varre o Google Maps e devolve nome, telefone, endereço e quem ainda não tem site — pronto pra você chamar no WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-deep: #0B1620;
+    --navy:      #142838;
+    --navy-light:#1D3A4E;
+    --signal:      #00E5A0;
+    --signal-deep: #00B37E;
+    --amber:       #FFB020;
+    --amber-deep:  #D9921A;
+    --ice:      #E8F1F5;
+    --ice-dark: #D6E4EA;
+    --ink:   #0E1B24;
+    --muted: #5E7280;
+    --white: #FFFFFF;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body:    'Inter', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 14px;
+    --radius-lg: 26px;
+    --radius-xl: 40px;
+
+    --shadow-soft: 0 4px 24px rgba(11,22,32,.08);
+    --shadow-card: 0 10px 40px rgba(11,22,32,.12);
+    --shadow-hero: 0 26px 80px rgba(11,22,32,.35);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+  body { font-family: var(--font-body); background: var(--ice); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+  img, svg { display: block; max-width: 100%; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes sweep { 0% { top: -2%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 102%; opacity: 0; } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ══════════════════ NAV ══════════════════ */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 6%; height: 72px; display: flex; align-items: center; justify-content: space-between; background: rgba(232,241,245,.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid rgba(11,22,32,.08); transition: box-shadow .3s; }
+  nav.scrolled { box-shadow: var(--shadow-soft); }
+  .nav-logo { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--ink); letter-spacing: -.01em; display: flex; align-items: center; gap: .6rem; text-decoration: none; }
+  .nav-logo .mark { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(150deg, var(--navy) 0%, var(--navy-deep) 100%); color: var(--signal); border-radius: 9px; font-family: var(--font-mono); font-size: .95rem; position: relative; }
+  .nav-logo .mark::after { content:''; position:absolute; inset:5px; border:1.5px solid var(--signal); border-radius:50%; opacity:.5; }
+  .nav-links { display: flex; align-items: center; gap: 2.2rem; }
+  .nav-link { font-size: .88rem; font-weight: 500; text-decoration: none; color: var(--ink); opacity: .7; transition: opacity .2s; }
+  .nav-link:hover { opacity: 1; }
+  .nav-cta { background: var(--navy-deep); color: var(--signal); font-size: .85rem; font-weight: 600; padding: .6rem 1.4rem; border-radius: 100px; text-decoration: none; transition: background .25s, transform .2s; border: 1px solid rgba(0,229,160,.3); }
+  .nav-cta:hover { background: var(--navy); transform: translateY(-1px); }
+  @media (max-width: 860px) { .nav-links > :not(.nav-cta) { display: none; } }
+
+  /* ══════════════════ HERO ══════════════════ */
+  .hero { min-height: 100vh; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 4rem; padding: 150px 6% 90px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; right: -12%; top: -15%; width: 55vw; height: 75vh; background: radial-gradient(ellipse at center, rgba(0,229,160,.1) 0%, transparent 65%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; left: 3%; bottom: 0; width: 28vw; height: 28vw; background: radial-gradient(ellipse at center, rgba(255,176,32,.1) 0%, transparent 65%); pointer-events: none; }
+
+  .hero-badge { display: inline-flex; align-items: center; gap: .55rem; background: var(--white); border: 1px solid var(--ice-dark); padding: .42rem 1rem; border-radius: 100px; font-size: .74rem; font-weight: 600; color: var(--navy-deep); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1.6rem; opacity: 0; animation: fadeUp .6s .15s forwards; font-family: var(--font-mono); }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--signal); border-radius: 50%; animation: pulse 2s infinite; }
+
+  .hero-headline { font-family: var(--font-display); font-size: clamp(2.2rem, 4.1vw, 3.6rem); font-weight: 700; line-height: 1.14; color: var(--ink); letter-spacing: -.02em; margin-bottom: 1.3rem; opacity: 0; animation: fadeUp .7s .3s forwards; }
+  .hero-headline em { font-style: normal; color: var(--signal-deep); }
+
+  .hero-sub { font-size: 1.05rem; color: #33454F; line-height: 1.75; max-width: 500px; margin-bottom: 2.3rem; font-weight: 400; opacity: 0; animation: fadeUp .7s .45s forwards; }
+
+  .hero-actions { display: flex; align-items: center; gap: 1.3rem; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s .6s forwards; }
+  .btn-primary { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%); color: var(--signal); font-size: .95rem; font-weight: 600; padding: .95rem 2.1rem; border-radius: 100px; text-decoration: none; transition: transform .25s, box-shadow .25s; box-shadow: 0 10px 28px rgba(11,22,32,.28); display: inline-block; border: 1px solid rgba(0,229,160,.25); cursor: pointer; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(11,22,32,.36); }
+  .btn-ghost { font-size: .92rem; font-weight: 600; color: var(--ink); text-decoration: none; padding: .9rem 0; display: inline-flex; align-items: center; gap: .4rem; border-bottom: 1.5px solid var(--ink); transition: opacity .2s; }
+  .btn-ghost:hover { opacity: .6; }
+
+  .hero-note { font-size: .8rem; color: var(--muted); margin-top: 1.4rem; display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s .7s forwards; }
+  .hero-note .item { display: flex; align-items: center; gap: .35rem; }
+  .hero-note .item::before { content: '✓'; color: var(--signal-deep); font-weight: 700; }
+
+  /* ── Hero visual: scanner de leads ── */
+  .hero-visual { position: relative; opacity: 0; animation: fadeIn .9s .45s forwards; }
+  .scanner-card { background: var(--navy-deep); border-radius: var(--radius-lg); box-shadow: var(--shadow-hero); border: 1px solid rgba(0,229,160,.14); overflow: hidden; }
+  .scanner-head { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(232,241,245,.08); display: flex; align-items: center; justify-content: space-between; }
+  .scanner-head-title { font-family: var(--font-mono); font-size: .72rem; color: rgba(232,241,245,.55); }
+  .scanner-head-title strong { color: var(--ice); }
+  .live-dot { display: flex; align-items: center; gap: .4rem; font-size: .64rem; color: var(--signal); font-family: var(--font-mono); letter-spacing: .05em; }
+  .live-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 8px var(--signal); animation: pulse 1.3s infinite; }
+
+  .scanner-body { padding: 1.4rem 1.4rem 1.6rem; position: relative; overflow: hidden; }
+  .scanner-body::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,229,160,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,160,.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+  }
+  .scan-sweep { position: absolute; left: 0; right: 0; height: 90px; background: linear-gradient(to bottom, transparent, rgba(0,229,160,.08), transparent); animation: sweep 3.2s linear infinite; pointer-events: none; }
+
+  .lead-row { position: relative; display: flex; align-items: center; gap: .8rem; background: rgba(232,241,245,.035); border: 1px solid rgba(232,241,245,.07); border-radius: var(--radius-sm); padding: .65rem .85rem; margin-bottom: .5rem; opacity: 0; animation: fadeUp .5s forwards; }
+  .lead-row:nth-child(2) { animation-delay: .35s; }
+  .lead-row:nth-child(3) { animation-delay: .65s; }
+  .lead-row:nth-child(4) { animation-delay: .95s; }
+  .lead-row:nth-child(5) { animation-delay: 1.25s; }
+  .lead-avatar { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--signal), var(--signal-deep)); display: flex; align-items: center; justify-content: center; font-size: .82rem; flex-shrink: 0; }
+  .lead-info { flex: 1; min-width: 0; }
+  .lead-name { font-size: .8rem; font-weight: 600; color: var(--ice); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lead-meta { font-size: .66rem; color: rgba(232,241,245,.4); font-family: var(--font-mono); }
+  .lead-flag { font-size: .6rem; font-weight: 700; padding: .22rem .5rem; border-radius: 5px; white-space: nowrap; flex-shrink: 0; }
+  .lead-flag.no-site { background: rgba(255,176,32,.16); color: var(--amber); }
+  .lead-flag.has-wa { background: rgba(0,229,160,.14); color: var(--signal); }
+
+  .scanner-footer { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-top: 1px solid rgba(232,241,245,.08); font-family: var(--font-mono); }
+  .scanner-footer-stat { font-size: .78rem; color: var(--ice); }
+  .scanner-footer-stat strong { color: var(--signal); }
+  .scanner-footer-time { font-size: .68rem; color: rgba(232,241,245,.4); }
+
+  .float-badge { position: absolute; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: .75rem 1.05rem; display: flex; align-items: center; gap: .55rem; font-size: .78rem; font-weight: 600; color: var(--ink); animation: float 3.2s ease-in-out infinite; }
+  .float-badge.b1 { top: -16px; left: -22px; }
+  .float-badge.b2 { bottom: -16px; right: -18px; animation-delay: 1.4s; }
+  .float-badge .ico { font-size: 1.1rem; }
+
+  @media (max-width: 980px) { .hero { grid-template-columns: 1fr; padding-top: 120px; } .hero-visual { max-width: 460px; } }
+
+  /* ══════════════════ SECTION SHARED ══════════════════ */
+  .section-label { font-size: .74rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--signal-deep); margin-bottom: .8rem; font-family: var(--font-mono); }
+  .section-title { font-family: var(--font-display); font-size: clamp(1.9rem, 3.2vw, 2.85rem); font-weight: 700; line-height: 1.18; letter-spacing: -.02em; margin-bottom: 1rem; }
+  .section-title.light { color: var(--ice); }
+  .section-title.dark  { color: var(--ink); }
+  .section-sub { font-size: 1rem; color: var(--muted); max-width: 540px; font-weight: 400; line-height: 1.7; }
+  .section-sub.on-dark { color: rgba(232,241,245,.5); }
+
+  /* ══════════════════ PROBLEMS ══════════════════ */
+  .section-problems { padding: 110px 6%; background: var(--navy-deep); position: relative; overflow: hidden; }
+  .section-problems::before { content: ''; position: absolute; top: 0; right: 0; width: 50vw; height: 50vh; background: radial-gradient(ellipse at top right, rgba(255,176,32,.08) 0%, transparent 60%); pointer-events: none; }
+  .problems-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(232,241,245,.07); border-radius: var(--radius-md); overflow: hidden; margin-top: 3.5rem; }
+  .problem-item { background: rgba(232,241,245,.02); padding: 2.1rem; transition: background .25s; }
+  .problem-item:hover { background: rgba(0,229,160,.06); }
+  .problem-icon { width: 44px; height: 44px; background: rgba(255,176,32,.12); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 1.1rem; }
+  .problem-title { font-size: .98rem; font-weight: 600; color: var(--ice); margin-bottom: .5rem; }
+  .problem-desc { font-size: .84rem; color: rgba(232,241,245,.42); line-height: 1.65; font-weight: 400; }
+  @media (max-width: 860px) { .problems-grid { grid-template-columns: 1fr; } }
+
+  /* ══════════════════ BENEFITS ══════════════════ */
+  .section-benefits { padding: 110px 6%; background: var(--ice); }
+  .benefits-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; margin-top: 3.5rem; }
+  .benefits-list { display: flex; flex-direction: column; gap: 1rem; }
+  .benefit-row { display: flex; align-items: flex-start; gap: 1rem; padding: 1.1rem; border-radius: var(--radius-md); transition: background .25s, transform .25s; }
+  .benefit-row:hover { background: var(--white); transform: translateX(4px); box-shadow: var(--shadow-soft); }
+  .benefit-check { width: 27px; height: 27px; background: linear-gradient(135deg, var(--signal), var(--signal-deep)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--navy-deep); font-size: .78rem; font-weight: 800; flex-shrink: 0; margin-top: .1rem; }
+  .benefit-text h4 { font-size: .96rem; font-weight: 600; color: var(--ink); margin-bottom: .25rem; }
+  .benefit-text p { font-size: .83rem; color: var(--muted); line-height: 1.55; font-weight: 400; }
+
+  .feature-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 2rem; border: 1px solid var(--ice-dark); }
+  .feature-card-title { font-family: var(--font-mono); font-size: .78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1.2rem; }
+  .big-stat { font-family: var(--font-display); font-size: 3.2rem; font-weight: 700; color: var(--navy-deep); line-height: 1; margin-bottom: .3rem; }
+  .big-stat span { color: var(--signal-deep); }
+  .big-stat-label { font-size: .84rem; color: var(--muted); margin-bottom: 1.6rem; }
+  .stat-chips { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+  .stat-chip { font-size: .74rem; font-weight: 600; padding: .4rem .8rem; border-radius: 100px; }
+  .stat-chip.amber { background: rgba(255,176,32,.12); color: var(--amber-deep); }
+  .stat-chip.signal { background: rgba(0,229,160,.12); color: var(--signal-deep); }
+  .feature-note { font-size: .78rem; color: var(--muted); line-height: 1.6; border-top: 1px solid var(--ice-dark); padding-top: 1rem; }
+  .feature-note strong { color: var(--navy-deep); }
+  @media (max-width: 900px) { .benefits-layout { grid-template-columns: 1fr; gap: 2.5rem; } }
+
+  /* ══════════════════ PROCESS ══════════════════ */
+  .section-process { padding: 110px 6%; background: var(--ice-dark); }
+  .process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3.5rem; }
+  .process-item { position: relative; padding-top: .5rem; }
+  .process-num { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; color: rgba(11,22,32,.14); line-height: 1; margin-bottom: 1rem; }
+  .process-item h4 { font-size: 1.05rem; font-weight: 600; color: var(--ink); margin-bottom: .5rem; }
+  .process-item p { font-size: .87rem; color: var(--muted); line-height: 1.65; }
+  .process-item:not(:last-child)::after { content: ''; position: absolute; top: 2.4rem; right: -1.4rem; width: 1rem; height: 1px; background: repeating-linear-gradient(to right, var(--signal-deep) 0 6px, transparent 6px 10px); display: none; }
+  @media (min-width: 861px) { .process-item:not(:last-child)::after { display: block; } }
+  @media (max-width: 860px) { .process-grid { grid-template-columns: 1fr; gap: 2.4rem; } }
+
+  /* ══════════════════ COVERAGE ══════════════════ */
+  .section-coverage { padding: 100px 6%; background: var(--ice); text-align: center; }
+  .section-coverage .section-label, .section-coverage .section-title, .section-coverage .section-sub { margin-left: auto; margin-right: auto; }
+  .crop-cloud { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 3rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+  .crop-chip { font-size: .82rem; font-weight: 500; color: var(--ink); background: var(--white); border: 1px solid var(--ice-dark); padding: .5rem 1.1rem; border-radius: 100px; transition: transform .2s, border-color .2s; }
+  .crop-chip:hover { transform: translateY(-2px); border-color: var(--signal-deep); }
+  .coverage-note { margin-top: 2rem; font-size: .82rem; color: var(--muted); }
+
+  /* ══════════════════ OFFER ══════════════════ */
+  .section-offer { padding: 90px 6%; background: linear-gradient(135deg, var(--navy-deep) 0%, #0F1F2C 55%, var(--navy-deep) 100%); position: relative; overflow: hidden; text-align: center; }
+  .section-offer::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 65vw; height: 65vw; background: radial-gradient(ellipse, rgba(0,229,160,.08) 0%, transparent 60%); pointer-events: none; }
+  .section-offer .section-title, .section-offer .section-sub { margin-left: auto; margin-right: auto; }
+  .offer-grid { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.2rem; margin: 2.4rem 0 2.6rem; }
+  .offer-pill { display: flex; align-items: center; gap: .55rem; background: rgba(232,241,245,.06); border: 1px solid rgba(232,241,245,.12); padding: .65rem 1.3rem; border-radius: 100px; font-size: .84rem; color: var(--ice); font-weight: 400; }
+  .offer-pill span { color: var(--signal); font-weight: 600; }
+
+  /* ══════════════════ FORM ══════════════════ */
+  .section-form { padding: 110px 6%; background: var(--ice); display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+  .form-intro .section-title { margin-bottom: 1rem; }
+  .trust-list { margin-top: 2.6rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .trust-item { display: flex; align-items: flex-start; gap: .8rem; background: var(--white); border-radius: var(--radius-md); padding: 1.1rem 1.3rem; border-left: 3px solid var(--signal-deep); box-shadow: var(--shadow-soft); }
+  .trust-item .ico { font-size: 1.1rem; margin-top: .1rem; }
+  .trust-item p { font-size: .86rem; color: #33454F; line-height: 1.6; }
+  .trust-item strong { color: var(--navy-deep); }
+
+  .form-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-hero); padding: 2.6rem; border: 1px solid var(--ice-dark); position: sticky; top: 100px; }
+  .form-card-header { text-align: center; margin-bottom: 1.8rem; }
+  .form-card-title { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; color: var(--ink); margin-bottom: .4rem; }
+  .form-card-sub { font-size: .84rem; color: var(--muted); }
+  .trial-badge { display: inline-block; background: linear-gradient(135deg, var(--signal), var(--signal-deep)); color: var(--navy-deep); font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .3rem .8rem; border-radius: 100px; margin-bottom: .9rem; }
+
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: .78rem; font-weight: 600; color: var(--ink); margin-bottom: .4rem; }
+  .field input, .field select { width: 100%; font-family: var(--font-body); font-size: .9rem; color: var(--ink); background: var(--ice); border: 1.5px solid var(--ice-dark); border-radius: var(--radius-sm); padding: .75rem .9rem; transition: border-color .2s; }
+  .field input:focus, .field select:focus { border-color: var(--signal-deep); outline: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+
+  .submit-btn { width: 100%; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%); color: var(--signal); font-size: .96rem; font-weight: 700; padding: 1rem; border: 1px solid rgba(0,229,160,.3); border-radius: var(--radius-sm); cursor: pointer; margin-top: .6rem; transition: transform .2s, box-shadow .2s; box-shadow: 0 10px 28px rgba(11,22,32,.25); }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(11,22,32,.32); }
+  .submit-btn:disabled { opacity: .6; cursor: default; transform: none; }
+  .form-fineprint { font-size: .72rem; color: var(--muted); text-align: center; margin-top: .9rem; }
+
+  #success-state { display: none; text-align: center; padding: 2rem 0; }
+  #success-state.active { display: block; }
+  .success-icon { width: 56px; height: 56px; background: linear-gradient(135deg, var(--signal), var(--signal-deep)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--navy-deep); font-size: 1.6rem; margin: 0 auto 1.2rem; }
+  #success-state h3 { font-family: var(--font-display); font-size: 1.35rem; margin-bottom: .6rem; color: var(--ink); }
+  #success-state p { font-size: .87rem; color: var(--muted); line-height: 1.6; }
+
+  @media (max-width: 900px) { .section-form { grid-template-columns: 1fr; gap: 2.5rem; } .form-card { position: static; } }
+
+  /* ══════════════════ FOOTER ══════════════════ */
+  footer { background: var(--navy-deep); padding: 3.2rem 6% 2.2rem; color: rgba(232,241,245,.45); }
+  .footer-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(232,241,245,.08); margin-bottom: 1.6rem; }
+  .footer-logo { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--ice); }
+  .footer-links { display: flex; gap: 1.8rem; flex-wrap: wrap; }
+  .footer-links a { font-size: .82rem; text-decoration: none; color: rgba(232,241,245,.45); transition: color .2s; }
+  .footer-links a:hover { color: var(--ice); }
+  .footer-bottom { font-size: .74rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+</style>
 </head>
 <body>
 
-<!-- ============================== AUTENTICAÇÃO ============================== -->
-<section id="auth-section">
-  <div class="radar-field" aria-hidden="true">
-    <span class="radar-ring r1"></span>
-    <span class="radar-ring r2"></span>
-    <span class="radar-ring r3"></span>
-    <span class="radar-sweep"></span>
+<nav id="navbar">
+  <a href="#" class="nav-logo"><span class="mark">◎</span>LeadScraper Pro</a>
+  <div class="nav-links">
+    <a href="#como-funciona" class="nav-link">Como funciona</a>
+    <a href="#nichos" class="nav-link">Nichos</a>
+    <a href="#comecar" class="nav-cta">Testar grátis</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-badge">&gt; Prospecção automática via Google Maps</div>
+    <h1 class="hero-headline">Ache 50 clientes em potencial antes de <em>terminar o café</em>.</h1>
+    <p class="hero-sub">Digite o nicho e a cidade. O sistema varre o Google Maps e devolve nome, telefone, endereço e quem ainda não tem site — pronto pra você chamar no WhatsApp, sem catar contato um por um.</p>
+    <div class="hero-actions">
+      <a href="#comecar" class="btn-primary">Testar grátis por 15 dias</a>
+      <a href="#como-funciona" class="btn-ghost">Ver como funciona →</a>
+    </div>
+    <div class="hero-note">
+      <span class="item">Sem precisar de API própria</span>
+      <span class="item">Exporta pra planilha</span>
+      <span class="item">Direto pro seu funil</span>
+    </div>
   </div>
 
-  <div class="auth-container">
-    <div class="auth-brand">
-      <span class="brand-mark"><i class="fa-solid fa-satellite-dish"></i></span>
-      <div>
-        <h1>LeadScraper Pro</h1>
-        <p>Radar de prospecção do ZenSalon</p>
+  <div class="hero-visual">
+    <div class="scanner-card">
+      <div class="scanner-head">
+        <div class="scanner-head-title">BUSCA: <strong>salão de beleza</strong> · Uberaba-MG</div>
+        <div class="live-dot">VARRENDO</div>
+      </div>
+      <div class="scanner-body">
+        <div class="scan-sweep"></div>
+        <div class="lead-row">
+          <div class="lead-avatar">💇</div>
+          <div class="lead-info"><div class="lead-name">Studio Bella Hair</div><div class="lead-meta">(34) 9····-4521</div></div>
+          <div class="lead-flag no-site">SEM SITE</div>
+        </div>
+        <div class="lead-row">
+          <div class="lead-avatar">💇</div>
+          <div class="lead-info"><div class="lead-name">Espaço Renov'Art</div><div class="lead-meta">(34) 9····-1187</div></div>
+          <div class="lead-flag has-wa">TEM WHATSAPP</div>
+        </div>
+        <div class="lead-row">
+          <div class="lead-avatar">💇</div>
+          <div class="lead-info"><div class="lead-name">Salão Vitrine</div><div class="lead-meta">(34) 9····-9042</div></div>
+          <div class="lead-flag no-site">SEM SITE</div>
+        </div>
+        <div class="lead-row">
+          <div class="lead-avatar">💇</div>
+          <div class="lead-info"><div class="lead-name">Charme &amp; Estilo</div><div class="lead-meta">(34) 9····-6630</div></div>
+          <div class="lead-flag no-site">SEM SITE</div>
+        </div>
+      </div>
+      <div class="scanner-footer">
+        <div class="scanner-footer-stat"><strong>84</strong> leads encontrados</div>
+        <div class="scanner-footer-time">12,4s</div>
+      </div>
+    </div>
+    <div class="float-badge b1"><span class="ico">📍</span> Google Maps</div>
+    <div class="float-badge b2"><span class="ico">📊</span> Exporta em .xlsx</div>
+  </div>
+</section>
+
+<!-- ══════════════════ PROBLEMS ══════════════════ -->
+<section class="section-problems">
+  <div class="section-label">// O que trava sua prospecção</div>
+  <h2 class="section-title light">Prospectar na mão não escala — e o tempo é o seu maior custo.</h2>
+  <p class="section-sub on-dark">Cada minuto catando telefone no Google Maps é um minuto que devia estar em ligação de venda.</p>
+  <div class="problems-grid">
+    <div class="problem-item reveal">
+      <div class="problem-icon">🔍</div>
+      <div class="problem-title">Prospecção manual é lenta</div>
+      <div class="problem-desc">Passar hora copiando nome, telefone e endereço um por um do mapa não escala — e cansa antes de vender.</div>
+    </div>
+    <div class="problem-item reveal">
+      <div class="problem-icon">📋</div>
+      <div class="problem-title">Lista fria, sem filtro</div>
+      <div class="problem-desc">Lista genérica de CNPJ vem cheia de empresa fechada, telefone errado, nicho que nada a ver com o seu serviço.</div>
+    </div>
+    <div class="problem-item reveal">
+      <div class="problem-icon">🌐</div>
+      <div class="problem-title">Você não sabe quem já tem site</div>
+      <div class="problem-desc">Sem saber quem ainda não tem presença online, você liga pra quem já não precisa do que você vende.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ BENEFITS ══════════════════ -->
+<section class="section-benefits">
+  <div class="section-label">// Como o sistema resolve</div>
+  <h2 class="section-title dark">Prospecção qualificada, pronta pra abordar.</h2>
+  <p class="section-sub">Não é uma lista genérica — é um filtro pensado pra quem vende serviço pra pequeno negócio.</p>
+
+  <div class="benefits-layout">
+    <div class="benefits-list">
+      <div class="benefit-row reveal">
+        <div class="benefit-check">✓</div>
+        <div class="benefit-text"><h4>Busca por nicho e cidade</h4><p>Escolhe o segmento — salão, barbearia, clínica, oficina, escritório de advocacia — e a região. O sistema varre o Google Maps por você.</p></div>
+      </div>
+      <div class="benefit-row reveal">
+        <div class="benefit-check">✓</div>
+        <div class="benefit-text"><h4>Já aponta quem não tem site</h4><p>Cada lead vem com a bandeira "sem site" ou "tem WhatsApp" — sabe exatamente quem mais precisa do seu serviço.</p></div>
+      </div>
+      <div class="benefit-row reveal">
+        <div class="benefit-check">✓</div>
+        <div class="benefit-text"><h4>Exporta pronto pra prospecção</h4><p>Nome, telefone, endereço e categoria, direto numa planilha ou no seu funil de vendas.</p></div>
+      </div>
+      <div class="benefit-row reveal">
+        <div class="benefit-check">✓</div>
+        <div class="benefit-text"><h4>Modelo de mensagem por nicho</h4><p>Já sai com script de abordagem pronto pra cada tipo de negócio — sem começar a escrever do zero.</p></div>
       </div>
     </div>
 
-    <div class="auth-box" id="login-box">
-      <h2>Entrar</h2>
-      <p class="auth-subtitle">Acesse sua central de leads</p>
-      <form id="login-form" novalidate>
-        <div class="field">
-          <label for="login-email">E-mail</label>
-          <input type="email" id="login-email" autocomplete="username" required>
+    <div class="benefits-visual reveal">
+      <div class="feature-card">
+        <div class="feature-card-title">Média por busca</div>
+        <div class="big-stat"><span>84</span> leads</div>
+        <div class="big-stat-label">em cerca de 12 segundos, por nicho e cidade</div>
+        <div class="stat-chips">
+          <div class="stat-chip amber">61% sem site</div>
+          <div class="stat-chip signal">89% com WhatsApp</div>
         </div>
-        <div class="field">
-          <label for="login-password">Senha</label>
-          <input type="password" id="login-password" autocomplete="current-password" required>
-        </div>
-        <button type="submit" class="btn-gold full-width" id="btn-login-submit">
-          <span class="btn-label">Entrar</span>
-          <span class="btn-spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-        </button>
-      </form>
-      <div class="auth-links">
-        <a href="#" id="link-register">Criar conta</a>
-        <span class="dot-sep">•</span>
-        <a href="#" id="link-forgot">Esqueci minha senha</a>
-      </div>
-    </div>
-
-    <div class="auth-box hidden" id="register-box">
-      <h2>Criar conta</h2>
-      <p class="auth-subtitle">Comece a captar leads em minutos</p>
-      <form id="register-form" novalidate>
-        <div class="field">
-          <label for="reg-name">Nome completo</label>
-          <input type="text" id="reg-name" autocomplete="name" required>
-        </div>
-        <div class="field">
-          <label for="reg-email">E-mail</label>
-          <input type="email" id="reg-email" autocomplete="username" required>
-        </div>
-        <div class="field">
-          <label for="reg-password">Senha (mínimo 6 caracteres)</label>
-          <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
-        </div>
-        <button type="submit" class="btn-gold full-width" id="btn-register-submit">
-          <span class="btn-label">Cadastrar</span>
-          <span class="btn-spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-        </button>
-      </form>
-      <div class="auth-links">
-        <a href="#" id="link-login-reg">Voltar para login</a>
-      </div>
-    </div>
-
-    <div class="auth-box hidden" id="forgot-box">
-      <h2>Recuperar senha</h2>
-      <p class="auth-subtitle">Enviaremos um link de redefinição</p>
-      <form id="forgot-form" novalidate>
-        <div class="field">
-          <label for="forgot-email">E-mail cadastrado</label>
-          <input type="email" id="forgot-email" autocomplete="username" required>
-        </div>
-        <button type="submit" class="btn-gold full-width" id="btn-forgot-submit">
-          <span class="btn-label">Enviar e-mail</span>
-          <span class="btn-spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-        </button>
-      </form>
-      <div class="auth-links">
-        <a href="#" id="link-login-forgot">Voltar</a>
+        <div class="feature-note"><strong>Dado direto do Google Maps:</strong> sempre atualizado, sem lista velha de CNPJ que já fechou.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============================== APP ============================== -->
-<div id="app-shell" class="hidden">
-
-  <header class="topbar">
-    <div class="topbar-left">
-      <span class="brand-mark sm"><i class="fa-solid fa-satellite-dish"></i></span>
-      <span class="brand-name">LeadScraper <strong>Pro</strong></span>
+<!-- ══════════════════ COMO FUNCIONA ══════════════════ -->
+<section class="section-process" id="como-funciona">
+  <div class="section-label">// Da busca à abordagem</div>
+  <h2 class="section-title dark">Três passos, não três horas de mapa aberto.</h2>
+  <div class="process-grid">
+    <div class="process-item reveal">
+      <div class="process-num">1</div>
+      <h4>Escolha o nicho e a cidade</h4>
+      <p>Salão, barbearia, clínica, oficina — o que você quiser prospectar.</p>
     </div>
-
-    <nav class="topnav" id="topnav" aria-label="Navegação principal">
-      <button class="nav-btn active" data-view="dashboard"><i class="fa-solid fa-gauge-high"></i><span>Painel</span></button>
-      <button class="nav-btn" data-view="leads"><i class="fa-solid fa-radar"></i><span>Prospecção</span></button>
-      <button class="nav-btn" data-view="messages"><i class="fa-solid fa-comment-dots"></i><span>Mensagens</span></button>
-    </nav>
-
-    <div class="topbar-right">
-      <button class="icon-btn" id="btn-theme-toggle" title="Alternar tema claro/escuro">
-        <i class="fa-solid fa-moon"></i>
-      </button>
-      <div class="credits-chip" title="Saldo de leads disponíveis">
-        <i class="fa-solid fa-bolt"></i>
-        <span id="leads-balance-display">0</span>
-      </div>
-      <div class="user-menu">
-        <button class="user-pill" id="btn-user-menu">
-          <span class="avatar" id="user-avatar">?</span>
-          <span class="user-name" id="user-name-display">—</span>
-          <i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="user-dropdown hidden" id="user-dropdown">
-          <button id="btn-config"><i class="fa-solid fa-sliders"></i> Configurações</button>
-          <button id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
-        </div>
-      </div>
+    <div class="process-item reveal">
+      <div class="process-num">2</div>
+      <h4>O sistema varre o Google Maps</h4>
+      <p>Em segundos, cruza nome, telefone, endereço e presença online de cada negócio encontrado.</p>
     </div>
-  </header>
+    <div class="process-item reveal">
+      <div class="process-num">3</div>
+      <h4>Exporte e comece a prospectar</h4>
+      <p>Lista pronta pra planilha, funil de vendas ou disparo de mensagem no WhatsApp.</p>
+    </div>
+  </div>
+</section>
 
-  <main class="app-main">
+<!-- ══════════════════ NICHOS ══════════════════ -->
+<section class="section-coverage" id="nichos">
+  <div class="section-label">// Nichos disponíveis</div>
+  <h2 class="section-title dark">Prospecte qualquer negócio local.</h2>
+  <p class="section-sub">Se aparece no Google Maps, o sistema encontra.</p>
+  <div class="crop-cloud">
+    <span class="crop-chip">Salão de beleza</span>
+    <span class="crop-chip">Barbearia</span>
+    <span class="crop-chip">Clínica de estética</span>
+    <span class="crop-chip">Odontologia</span>
+    <span class="crop-chip">Advocacia</span>
+    <span class="crop-chip">Contabilidade</span>
+    <span class="crop-chip">Oficina mecânica</span>
+    <span class="crop-chip">Chaveiro</span>
+    <span class="crop-chip">Petshop</span>
+    <span class="crop-chip">Academia</span>
+    <span class="crop-chip">Papelaria</span>
+    <span class="crop-chip">Pizzaria</span>
+  </div>
+  <p class="coverage-note">Não achou seu nicho na lista? A gente configura junto com você.</p>
+</section>
 
-    <!-- ---------- DASHBOARD ---------- -->
-    <section id="view-dashboard" class="view">
-      <div class="view-header">
-        <div>
-          <h1>Painel de prospecção</h1>
-          <p class="view-subtitle">Visão geral da sua carteira de leads</p>
-        </div>
-        <button class="btn-primary" id="btn-goto-search"><i class="fa-solid fa-magnifying-glass"></i> Nova busca</button>
+<!-- ══════════════════ OFFER ══════════════════ -->
+<section class="section-offer">
+  <div class="section-label">// Comece hoje</div>
+  <h2 class="section-title light">Pare de caçar cliente na mão.</h2>
+  <div class="offer-grid">
+    <div class="offer-pill"><span>15 dias</span> grátis pra testar</div>
+    <div class="offer-pill">Sem <span>fidelidade</span></div>
+    <div class="offer-pill">Suporte direto no <span>WhatsApp</span></div>
+  </div>
+  <a href="#comecar" class="btn-primary">Quero testar agora</a>
+</section>
+
+<!-- ══════════════════ FORM ══════════════════ -->
+<section class="section-form" id="comecar">
+  <div class="form-intro">
+    <div class="section-label">// Fale com a gente</div>
+    <h2 class="section-title dark">Deixa seu contato que a gente libera seu acesso.</h2>
+    <p class="section-sub">Sem robô de vendas — quem responde é quem constrói o sistema.</p>
+
+    <div class="trust-list">
+      <div class="trust-item reveal">
+        <span class="ico">🗺️</span>
+        <p><strong>Dado direto do Google Maps,</strong> sempre atualizado — sem lista velha de CNPJ fechado.</p>
       </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-icon ico-blue"><i class="fa-solid fa-database"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="kpi-total">0</span><span class="kpi-label">Leads na carteira</span></div>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-icon ico-hot"><i class="fa-solid fa-fire"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="kpi-hot">0</span><span class="kpi-label">Leads quentes</span></div>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-icon ico-gold"><i class="fa-solid fa-handshake"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="kpi-converted">0</span><span class="kpi-label">Convertidos</span></div>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-icon ico-teal"><i class="fa-brands fa-whatsapp"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="kpi-messages-week">0</span><span class="kpi-label">Mensagens (7 dias)</span></div>
-        </div>
+      <div class="trust-item reveal">
+        <span class="ico">⚙️</span>
+        <p><strong>Sem estourar limite de API.</strong> A gente cuida da infraestrutura pra você só usar.</p>
       </div>
-
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3>Leads por status</h3>
-          <canvas id="chart-status" height="220"></canvas>
-        </div>
-        <div class="chart-card">
-          <h3>Top nichos prospectados</h3>
-          <canvas id="chart-niche" height="220"></canvas>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <h3>Leads recentes</h3>
-          <button class="btn-outline btn-sm" data-nav="leads">Ver todos</button>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead><tr><th>Empresa</th><th>Nicho</th><th>Score</th><th>Status</th><th>Adicionado</th></tr></thead>
-            <tbody id="dashboard-recent-body"><tr><td colspan="5" class="empty-row">Nenhum lead ainda.</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ---------- PROSPECÇÃO (busca + resultados) ---------- -->
-    <section id="view-leads" class="view hidden">
-      <div class="view-header">
-        <div>
-          <h1>Prospecção de leads</h1>
-          <p class="view-subtitle">Encontre e qualifique novos clientes para o ZenSalon</p>
-        </div>
-      </div>
-
-      <div class="panel search-panel">
-        <form id="lead-search-form" novalidate>
-          <div class="form-grid">
-            <div class="field">
-              <label for="niche">Nicho / profissão *</label>
-              <input type="text" id="niche" placeholder="Ex: salão de beleza, barbearia..." required list="niche-suggestions">
-              <datalist id="niche-suggestions">
-                <option value="Salão de beleza"></option>
-                <option value="Barbearia"></option>
-                <option value="Clínica de estética"></option>
-                <option value="Pet shop"></option>
-                <option value="Clínica odontológica"></option>
-                <option value="Clínica médica"></option>
-                <option value="Consultório médico"></option>
-                <option value="Escritório de contabilidade"></option>
-                <option value="Escritório de advocacia"></option>
-                <option value="Oficina mecânica"></option>
-                <option value="Casa de repouso"></option>
-              </datalist>
-            </div>
-            <div class="field">
-              <label for="city">Cidade</label>
-              <input type="text" id="city" placeholder="Ex: Uberaba">
-            </div>
-            <div class="field">
-              <label for="state">Estado (UF)</label>
-              <select id="state">
-                <option value="">Todos</option>
-                <option value="MG">Minas Gerais</option>
-                <option value="SP">São Paulo</option>
-                <option value="RJ">Rio de Janeiro</option>
-                <option value="GO">Goiás</option>
-                <option value="DF">Distrito Federal</option>
-                <option value="ES">Espírito Santo</option>
-                <option value="BA">Bahia</option>
-                <option value="PR">Paraná</option>
-                <option value="SC">Santa Catarina</option>
-                <option value="RS">Rio Grande do Sul</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="neighborhood">Bairro (opcional)</label>
-              <input type="text" id="neighborhood" placeholder="Ex: Centro, Abadia...">
-            </div>
-            <div class="field">
-              <label for="limit">Quantidade (máx <span id="limit-max-label">150</span>)</label>
-              <input type="number" id="limit" value="50" min="1" max="150">
-            </div>
-          </div>
-          <div class="search-actions">
-            <button type="submit" class="btn-gold" id="btn-search-submit">
-              <span class="btn-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar leads</span>
-              <span class="btn-spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-            </button>
-            <button type="button" id="btn-save-leads" class="btn-success" disabled>
-              <i class="fa-solid fa-floppy-disk"></i> Salvar na carteira
-            </button>
-            <span class="search-hint" id="search-credits-hint"></span>
-          </div>
-        </form>
-        <div id="api-status-box" class="info-box hidden"></div>
-      </div>
-
-      <div id="results-panel" class="panel hidden">
-        <div class="panel-header">
-          <h3>Resultados da busca: <span id="result-count">0</span></h3>
-          <div class="export-buttons">
-            <button id="btn-export-csv" class="btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> CSV</button>
-            <button id="btn-export-xlsx" class="btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Excel</button>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="search-results-table">
-            <thead><tr><th>Empresa</th><th>Score</th><th>Avaliação</th><th>Endereço</th><th>Contato</th></tr></thead>
-            <tbody id="search-results-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <h3>Minha carteira de leads</h3>
-          <div class="panel-header-actions">
-            <div class="view-toggle" id="wallet-view-toggle">
-              <button type="button" class="view-toggle-btn active" data-wallet-view="list"><i class="fa-solid fa-list"></i> Lista</button>
-              <button type="button" class="view-toggle-btn" data-wallet-view="kanban"><i class="fa-solid fa-table-columns"></i> Kanban</button>
-            </div>
-            <button type="button" id="btn-import-xlsx" class="btn-outline btn-sm">
-              <span class="btn-label"><i class="fa-solid fa-file-import"></i> Importar XLSX</span>
-              <span class="btn-spinner hidden"><i class="fa-solid fa-spinner fa-spin"></i> Importando...</span>
-            </button>
-            <input type="file" id="import-xlsx-input" accept=".xlsx,.xls" class="hidden">
-            <button type="button" id="btn-dedup-leads" class="btn-outline btn-sm" title="Remover duplicatas por telefone">
-              <span class="btn-label"><i class="fa-solid fa-broom"></i> Remover duplicatas</span>
-              <span class="btn-spinner hidden"><i class="fa-solid fa-spinner fa-spin"></i> Removendo...</span>
-            </button>
-
-            <span class="muted" id="wallet-count-label">0 leads</span>
-          </div>
-        </div>
-
-        <div class="filters-bar">
-          <div class="field">
-            <label>Buscar</label>
-            <input type="text" id="filter-text" placeholder="Nome, endereço...">
-          </div>
-          <div class="field">
-            <label>Bairro</label>
-            <input type="text" id="filter-neighborhood" placeholder="Filtrar por bairro">
-          </div>
-          <div class="field">
-            <label>Status</label>
-            <select id="filter-status">
-              <option value="">Todos</option>
-              <option value="Novo">Novo</option>
-              <option value="Contatado">Contatado</option>
-              <option value="Interessado">Interessado</option>
-              <option value="Negociação">Negociação</option>
-              <option value="Convertido">Convertido</option>
-              <option value="Não interessado">Não interessado</option>
-              <option value="Telefone sem WhatsApp">Telefone sem WhatsApp</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Score</label>
-            <select id="filter-score">
-              <option value="">Todos</option>
-              <option value="quente">🔥 Quente</option>
-              <option value="morno">🟡 Morno</option>
-              <option value="frio">🔵 Frio</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Nicho</label>
-            <select id="filter-niche"><option value="">Todos</option></select>
-          </div>
-          <div class="field">
-            <label>Avaliação mín.</label>
-            <select id="filter-min-rating">
-              <option value="0">Qualquer</option>
-              <option value="3">3.0+</option>
-              <option value="4">4.0+</option>
-              <option value="4.5">4.5+</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="wallet-list-view">
-          <div class="table-responsive">
-            <table class="data-table" id="leads-table">
-              <thead><tr><th>Empresa / Status</th><th>Detalhes</th><th>Contato</th><th>Ações</th></tr></thead>
-              <tbody id="leads-body"></tbody>
-            </table>
-          </div>
-
-          <div class="pagination-bar">
-            <div class="page-size-control">
-              <label for="page-size-select">Por página</label>
-              <select id="page-size-select">
-                <option value="25">25</option>
-                <option value="50" selected>50</option>
-                <option value="100">100</option>
-                <option value="150">150</option>
-              </select>
-            </div>
-            <div id="pagination-controls" class="pagination-container"></div>
-          </div>
-        </div>
-
-        <div id="wallet-kanban-view" class="kanban-board hidden"></div>
-      </div>
-    </section>
-
-    <!-- ---------- MENSAGENS ---------- -->
-    <section id="view-messages" class="view hidden">
-      <div class="view-header">
-        <div>
-          <h1>Mensagens</h1>
-          <p class="view-subtitle">Histórico e desempenho das abordagens enviadas</p>
-        </div>
-      </div>
-
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card">
-          <span class="kpi-icon ico-teal"><i class="fa-brands fa-whatsapp"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="msg-kpi-total">0</span><span class="kpi-label">Mensagens geradas</span></div>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-icon ico-blue"><i class="fa-regular fa-calendar"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="msg-kpi-week">0</span><span class="kpi-label">Nos últimos 7 dias</span></div>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-icon ico-gold"><i class="fa-solid fa-star"></i></span>
-          <div class="kpi-body"><span class="kpi-value" id="msg-kpi-top-template">—</span><span class="kpi-label">Modelo mais usado</span></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header"><h3>Histórico de envios</h3></div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead><tr><th>Lead</th><th>Modelo usado</th><th>Data</th><th>Ação</th></tr></thead>
-            <tbody id="messages-history-body"><tr><td colspan="4" class="empty-row">Nenhuma mensagem registrada ainda.</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="app-footer">
-    <p>&copy; <span id="footer-year"></span> LeadScraper Pro — Prospecção inteligente para o ZenSalon</p>
-  </footer>
-
-  <!-- ====================== MODAL CONFIGURAÇÕES ====================== -->
-  <div id="config-modal" class="modal hidden">
-    <div class="modal-content large-modal">
-      <span class="close-modal">&times;</span>
-      <h3><i class="fa-solid fa-sliders"></i> Configurações</h3>
-
-      <div class="config-section">
-        <h4><i class="fa-solid fa-comment-dots"></i> Modelos de mensagem</h4>
-        <div class="new-template-form">
-          <input type="text" id="new-template-name" placeholder="Nome do modelo (ex: Formal, Amigável)" class="template-name-input">
-          <textarea id="new-template-content" rows="3" placeholder="Conteúdo do modelo. Use variáveis: {empresa}, {nicho}, {cidade}, {bairro}"></textarea>
-          <button id="btn-save-template" class="btn-secondary"><i class="fa-solid fa-plus"></i> Adicionar modelo</button>
-        </div>
-        <ul id="templates-list" class="templates-list"></ul>
-      </div>
-
-      <div id="admin-section" class="config-section" style="display:none;">
-        <h4><i class="fa-solid fa-shield-halved"></i> Administração (superusuário)</h4>
-
-        <div class="admin-card">
-          <p><strong>Meu saldo</strong></p>
-          <div class="button-group">
-            <button id="btn-admin-add-self-leads" class="btn-success"><i class="fa-solid fa-circle-plus"></i> +10 leads (meu saldo)</button>
-            <button id="btn-admin-reset-self-balance" class="btn-outline"><i class="fa-solid fa-trash-can"></i> Zerar meu saldo</button>
-          </div>
-          <div id="admin-self-msg" class="validation-msg"></div>
-        </div>
-
-        <div class="admin-card">
-          <p><strong>Adicionar créditos a outro usuário</strong></p>
-          <div class="flex-row">
-            <input type="email" id="admin-user-email" placeholder="E-mail do usuário">
-            <input type="number" id="admin-credits-qty" placeholder="Quantidade" min="1" max="5000">
-            <button id="btn-admin-add-credits" class="btn-primary">Adicionar</button>
-          </div>
-          <div id="admin-credits-msg" class="validation-msg"></div>
-        </div>
-
-        <div class="admin-card">
-          <p><strong>Promover usuário a superadministrador</strong></p>
-          <div class="flex-row">
-            <input type="email" id="admin-promote-email" placeholder="E-mail do usuário">
-            <button id="btn-promote-to-admin" class="btn-primary">Tornar admin</button>
-          </div>
-          <div id="admin-promote-msg" class="validation-msg"></div>
-        </div>
-
-        <div class="admin-card">
-          <p><strong>Limite de leads por busca</strong></p>
-          <div class="flex-row">
-            <input type="number" id="admin-max-leads" placeholder="Ex: 150" min="1" max="500">
-            <button id="btn-admin-update-max-leads" class="btn-primary">Salvar limite</button>
-          </div>
-          <div id="admin-max-leads-msg" class="validation-msg"></div>
-        </div>
+      <div class="trust-item reveal">
+        <span class="ico">💬</span>
+        <p><strong>Modelo de mensagem testado em prospecção real,</strong> pronto pra cada nicho.</p>
       </div>
     </div>
   </div>
 
-  <!-- ====================== MODAL DETALHES DO LEAD ====================== -->
-  <div id="lead-details-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-modal-details">&times;</span>
-      <h3>Editar lead</h3>
-      <p class="lead-detail-name" id="detail-lead-name"></p>
-      <div class="field">
-        <label for="detail-status">Status</label>
-        <select id="detail-status">
-          <option value="Novo">Novo</option>
-          <option value="Contatado">Contatado</option>
-          <option value="Interessado">Interessado</option>
-          <option value="Negociação">Negociação</option>
-          <option value="Convertido">Convertido</option>
-          <option value="Não interessado">Não interessado</option>
-          <option value="Telefone sem WhatsApp">Telefone sem WhatsApp</option>
-        </select>
+  <div class="form-card">
+    <div id="form-state">
+      <div class="form-card-header">
+        <span class="trial-badge">15 dias grátis</span>
+        <div class="form-card-title">Testar o LeadScraper</div>
+        <div class="form-card-sub">Leva menos de um minuto</div>
       </div>
-      <div class="field">
-        <label for="detail-score">Score / qualificação</label>
-        <select id="detail-score">
-          <option value="quente">🔥 Quente</option>
-          <option value="morno">🟡 Morno</option>
-          <option value="frio">🔵 Frio</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="detail-notes">Notas</label>
-        <textarea id="detail-notes" rows="4"></textarea>
-      </div>
-      <p class="muted small" id="detail-last-contact"></p>
-      <div class="modal-actions">
-        <button id="btn-save-details" class="btn-primary">Salvar</button>
-        <button id="btn-delete-lead" class="btn-delete-outline">Excluir lead</button>
-        <button id="btn-cancel-details" class="btn-outline">Cancelar</button>
-      </div>
+      <form id="lead-form">
+        <div class="field">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" placeholder="Seu nome completo" required>
+        </div>
+        <div class="field">
+          <label for="perfil">Você prospecta pra</label>
+          <select id="perfil" required>
+            <option value="">Selecione...</option>
+            <option value="Agencia de marketing">Agência de marketing</option>
+            <option value="Freelancer/Consultor">Freelancer / Consultor</option>
+            <option value="Meu proprio negocio">Meu próprio negócio</option>
+            <option value="Vendedor B2B">Vendedor B2B</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="whatsapp">WhatsApp</label>
+            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" required>
+          </div>
+          <div class="field">
+            <label for="cidade">Cidade/UF</label>
+            <input type="text" id="cidade" placeholder="Uberaba/MG" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="nicho">Nicho de interesse</label>
+          <input type="text" id="nicho" placeholder="Ex: salão de beleza, oficina..." required>
+        </div>
+        <button type="submit" class="submit-btn" id="submit-btn">Quero testar grátis</button>
+        <p class="form-fineprint">Ao enviar, você será direcionado ao WhatsApp pra confirmar seu acesso.</p>
+      </form>
+    </div>
+
+    <div id="success-state">
+      <div class="success-icon">✓</div>
+      <h3>Prontinho!</h3>
+      <p>Abrimos o WhatsApp pra você confirmar seus dados. Se não abrir sozinho, <a href="#" id="wa-fallback" style="color: var(--signal-deep); font-weight: 600;">clica aqui</a>.</p>
     </div>
   </div>
+</section>
 
-  <!-- ====================== MODAL MENSAGEM ====================== -->
-  <div id="message-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-modal-msg">&times;</span>
-      <h3>Gerar abordagem</h3>
-      <p class="lead-detail-name" id="message-lead-name"></p>
-      <div class="field">
-        <label for="modal-template-select">Modelo</label>
-        <select id="modal-template-select"></select>
-      </div>
-      <div class="field">
-        <label for="generated-message">Mensagem</label>
-        <textarea id="generated-message" rows="6"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button id="copy-message" class="btn-secondary"><i class="fa-regular fa-copy"></i> Copiar</button>
-        <a id="btn-send-whatsapp" href="#" target="_blank" rel="noopener" class="btn-whatsapp-action"><i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp</a>
-      </div>
+<footer>
+  <div class="footer-top">
+    <div class="footer-logo">LeadScraper Pro</div>
+    <div class="footer-links">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#nichos">Nichos</a>
+      <a href="#comecar">Testar grátis</a>
     </div>
   </div>
-
-  <!-- ====================== MODAL CONFIRMAÇÃO GENÉRICA ====================== -->
-  <div id="confirm-modal" class="modal hidden">
-    <div class="modal-content small-modal">
-      <h3 id="confirm-title">Confirmar ação</h3>
-      <p id="confirm-message"></p>
-      <div class="modal-actions">
-        <button id="confirm-ok" class="btn-delete-outline">Confirmar</button>
-        <button id="confirm-cancel" class="btn-outline">Cancelar</button>
-      </div>
-    </div>
+  <div class="footer-bottom">
+    <span>© 2026 LeadScraper Pro · Prospecção automática via Google Maps</span>
+    <span>Uberaba/MG</span>
   </div>
+</footer>
 
-</div>
+<script>
+  // ── CONFIGURAÇÃO: troque pelo seu número (código do país + DDD + número, só dígitos) ──
+  const WHATSAPP_DESTINO = '5534997824990';
 
-<div id="toast-container" class="toast-container" aria-live="polite"></div>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 20));
 
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-<script src="firebase-config.js"></script>
-<script src="script.js"></script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 70);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => observer.observe(el));
+
+  const waInput = document.getElementById('whatsapp');
+  waInput.addEventListener('input', () => {
+    let v = waInput.value.replace(/\D/g, '').substring(0, 11);
+    if (v.length >= 7) v = '(' + v.substring(0,2) + ') ' + v.substring(2,7) + '-' + v.substring(7);
+    else if (v.length >= 3) v = '(' + v.substring(0,2) + ') ' + v.substring(2);
+    else if (v.length > 0) v = '(' + v;
+    waInput.value = v;
+  });
+
+  function montarMensagem(d) {
+    return '🔍 *Novo lead — LeadScraper Pro*\n\n' +
+      '👤 *Nome:* ' + d.nome + '\n' +
+      '💼 *Perfil:* ' + d.perfil + '\n' +
+      '📱 *WhatsApp:* ' + d.whatsapp + '\n' +
+      '📍 *Cidade:* ' + d.cidade + '\n' +
+      '🎯 *Nicho de interesse:* ' + d.nicho + '\n\n' +
+      '✅ Quero testar grátis por 15 dias.';
+  }
+
+  const form = document.getElementById('lead-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const waFallback = document.getElementById('wa-fallback');
+  let ultimaUrlWhatsapp = '#';
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const dados = {
+      nome: document.getElementById('nome').value.trim(),
+      perfil: document.getElementById('perfil').value,
+      whatsapp: document.getElementById('whatsapp').value.trim(),
+      cidade: document.getElementById('cidade').value.trim(),
+      nicho: document.getElementById('nicho').value.trim(),
+    };
+
+    let ok = true;
+    form.querySelectorAll('input, select').forEach((input) => {
+      if (!input.value.trim()) {
+        ok = false;
+        input.style.borderColor = '#D9921A';
+        input.addEventListener('input', () => { input.style.borderColor = ''; }, { once: true });
+      }
+    });
+    if (!ok) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const msg = montarMensagem(dados);
+    ultimaUrlWhatsapp = 'https://wa.me/' + WHATSAPP_DESTINO + '?text=' + encodeURIComponent(msg);
+    waFallback.href = ultimaUrlWhatsapp;
+
+    const formState = document.getElementById('form-state');
+    const successState = document.getElementById('success-state');
+    formState.style.transition = 'opacity .3s ease, transform .3s ease';
+    formState.style.opacity = '0';
+    formState.style.transform = 'scale(.97)';
+    setTimeout(() => {
+      formState.style.display = 'none';
+      successState.classList.add('active');
+      successState.style.opacity = '0';
+      successState.style.transform = 'translateY(10px)';
+      successState.style.transition = 'all .4s ease';
+      requestAnimationFrame(() => {
+        successState.style.opacity = '1';
+        successState.style.transform = 'translateY(0)';
+      });
+      window.open(ultimaUrlWhatsapp, '_blank');
+    }, 300);
+  });
+</script>
 </body>
 </html>
